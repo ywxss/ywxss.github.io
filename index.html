@@ -25,18 +25,31 @@
     function updateImage() {
         const img = document.getElementById('wave-img');
         const timeDisplay = document.getElementById('time-display');
-        const ts = new Date().getTime();
         
-        // Proxy URL to bypass CORS/Hotlink protection
-        const cleanUrl = "www.bom.gov.au/fwo/IDT65014/IDT65014.height.png";
-        img.src = `https://images.weserv.nl/?url=${cleanUrl}&t=${ts}`;
+        // Use a high-performance proxy and a strict timestamp
+        const ts = Date.now();
+        const bomUrl = "www.bom.gov.au/fwo/IDT65014/IDT65014.height.png";
         
-        timeDisplay.innerText = "Updated at: " + new Date().toLocaleTimeString();
+        // This specific proxy format helps force a fresh fetch
+        img.src = `https://images.weserv.nl/?url=${bomUrl}&cachebuster=${ts}`;
+        
+        // Listen for when the image finishes loading
+        img.onload = function() {
+            timeDisplay.innerText = "Updated at: " + new Date().toLocaleTimeString();
+        };
+
+        // Listen for errors
+        img.onerror = function() {
+            timeDisplay.innerText = "Error: BOM server busy. Retrying...";
+            // Optional: try again in 5 seconds if it fails
+            setTimeout(updateImage, 5000);
+        };
     }
 
-    // Initial load
+    // Load on page open
     updateImage();
-    // Refresh every 30 mins
+
+    // Auto-refresh every 30 mins
     setInterval(updateImage, 1800000);
 </script>
 
